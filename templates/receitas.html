@@ -58,8 +58,11 @@
 
     <!-- Lista de Receitas -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5>Receitas do Período</h5>
+            <a href="{{ url_for('exportar_receitas_csv') }}" class="btn btn-outline-success">
+                <i class="fas fa-file-download"></i> Exportar CSV
+            </a>
         </div>
         <div class="card-body">
             <div class="table-responsive">

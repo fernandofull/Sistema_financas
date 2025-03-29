@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from models import db, Usuario, Despesa, Receita, Categoria, ReservaInvestimento
 from datetime import datetime, date
 from functools import wraps
@@ -11,6 +11,8 @@ import codecs
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+import csv
+import io
 
 # Configura a codificação padrão para UTF-8
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer)
@@ -1620,6 +1622,76 @@ def internal_error(error):
                          error_code=500,
                          error_name='Erro Interno do Servidor',
                          error_description='Ocorreu um erro interno no servidor. Nossa equipe foi notificada.'), 500
+
+@app.route('/exportar_receitas_csv')
+@login_required
+def exportar_receitas_csv():
+    usuario_id = Usuario.query.filter_by(username=session['usuario']).first().id
+    
+    # Busca todas as receitas do usuário
+    receitas = Receita.query.filter_by(usuario_id=usuario_id).all()
+    
+    # Cria um buffer de memória para o CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Escreve o cabeçalho
+    writer.writerow(['Descrição', 'Valor', 'Data', 'Categoria', 'Fixa', 'Recebido'])
+    
+    # Escreve os dados
+    for receita in receitas:
+        writer.writerow([
+            receita.descricao,
+            receita.valor,
+            receita.data.strftime('%Y-%m-%d'),
+            receita.categoria.nome,
+            'Sim' if receita.fixa else 'Não',
+            'Sim' if receita.recebido else 'Não'
+        ])
+    
+    # Prepara o arquivo para download
+    output.seek(0)
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f'receitas_{datetime.now().strftime("%Y%m%d")}.csv'
+    )
+
+@app.route('/exportar_despesas_csv')
+@login_required
+def exportar_despesas_csv():
+    usuario_id = Usuario.query.filter_by(username=session['usuario']).first().id
+    
+    # Busca todas as despesas do usuário
+    despesas = Despesa.query.filter_by(usuario_id=usuario_id).all()
+    
+    # Cria um buffer de memória para o CSV
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Escreve o cabeçalho
+    writer.writerow(['Descrição', 'Valor', 'Data', 'Categoria', 'Fixa', 'Pago'])
+    
+    # Escreve os dados
+    for despesa in despesas:
+        writer.writerow([
+            despesa.descricao,
+            despesa.valor,
+            despesa.data.strftime('%Y-%m-%d'),
+            despesa.categoria.nome,
+            'Sim' if despesa.fixa else 'Não',
+            'Sim' if despesa.pago else 'Não'
+        ])
+    
+    # Prepara o arquivo para download
+    output.seek(0)
+    return send_file(
+        io.BytesIO(output.getvalue().encode('utf-8')),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f'despesas_{datetime.now().strftime("%Y%m%d")}.csv'
+    )
 
 if __name__ == '__main__':
     # Inicializa o scheduler apenas uma vez
