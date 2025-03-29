@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Análise Gráfica</h2>
+
+    {% include 'componentes/filtro_periodo_completo.html' with context %}
+    {% set mostrar_checkbox = false %}
+
+    <div class="row mt-4">
+        <!-- Gráfico de Barras - Receitas x Despesas -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Receitas x Despesas</h5>
+                    <button id="toggleReservas" 
+                            class="btn btn-outline-success">
+                        <i class="fas fa-piggy-bank me-2"></i>
+                        Mostrar Reservas e Investimentos
+                    </button>
+                </div>
+                <div class="card-body">
+                    <canvas id="graficoComparativo"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Linhas - Evolução Mensal -->
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Evolução Mensal</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="graficoEvolucao"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incluir Chart.js e plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+// Registra o plugin ChartDataLabels
+Chart.register(ChartDataLabels);
+
+// Dados recebidos do backend
+const dadosGraficos = JSON.parse('{{ dados_graficos | tojson | safe }}');
+
+// Declarar as variáveis dos gráficos no escopo global
+let graficoComparativo;
+let graficoEvolucao;
+
+// Configuração do gráfico comparativo
+const ctxComparativo = document.getElementById('graficoComparativo');
+if (ctxComparativo) {
+    graficoComparativo = new Chart(ctxComparativo, {
+        type: 'bar',
+        data: {
+            labels: ['Comparativo'],
+            datasets: [
+                {
+                    label: 'Receitas',
+                    data: [dadosGraficos.total_receitas || 0],
+                    backgroundColor: 'rgba(40, 167, 69, 0.5)',
+                    borderColor: 'rgb(40, 167, 69)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Despesas',
+                    data: [dadosGraficos.total_despesas || 0],
+                    backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                    borderColor: 'rgb(220, 53, 69)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                        }
+                    }
+                }
+            },
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: function(value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                    },
+                    color: 'black',
+                    font: {
+                        weight: 'bold'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Configuração do gráfico de evolução
+const ctxEvolucao = document.getElementById('graficoEvolucao');
+if (ctxEvolucao) {
+    graficoEvolucao = new Chart(ctxEvolucao, {
+        type: 'line',
+        data: {
+            labels: dadosGraficos.meses || [],
+            datasets: [
+                {
+                    label: 'Receitas',
+                    data: dadosGraficos.evolucao_receitas || [],
+                    borderColor: 'rgb(40, 167, 69)',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Despesas',
+                    data: dadosGraficos.evolucao_despesas || [],
+                    borderColor: 'rgb(220, 53, 69)',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': R$ ' + context.raw.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                        }
+                    }
+                },
+                datalabels: {
+                    display: false
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+let reservasAtivas = false;
+
+function toggleReservas() {
+    console.log('Toggle Reservas chamado'); // Debug
+    console.log('Estado atual:', reservasAtivas); // Debug
+    
+    const botao = document.getElementById('toggleReservas');
+    reservasAtivas = !reservasAtivas;
+    
+    if (reservasAtivas) {
+        // Ativa o modo reservas
+        botao.classList.remove('btn-outline-success');
+        botao.classList.add('btn-danger');
+        botao.innerHTML = '<i class="fas fa-piggy-bank me-2"></i>Ocultar Reservas e Investimentos';
+        
+        // Adiciona dataset de reservas ao gráfico comparativo
+        if (graficoComparativo && graficoComparativo.data) {
+            graficoComparativo.data.datasets.push({
+                label: 'Reservas e Investimentos',
+                data: [dadosGraficos.total_reservas],
+                backgroundColor: 'rgba(111, 66, 193, 0.5)',
+                borderColor: 'rgb(111, 66, 193)',
+                borderWidth: 1
+            });
+            graficoComparativo.update();
+        }
+        
+        // Adiciona dataset de reservas ao gráfico de evolução
+        if (graficoEvolucao && graficoEvolucao.data) {
+            graficoEvolucao.data.datasets.push({
+                label: 'Reservas e Investimentos',
+                data: dadosGraficos.evolucao_reservas,
+                borderColor: 'rgb(111, 66, 193)',
+                backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                tension: 0.4,
+                fill: true
+            });
+            graficoEvolucao.update();
+        }
+    } else {
+        // Desativa o modo reservas
+        botao.classList.remove('btn-danger');
+        botao.classList.add('btn-outline-success');
+        botao.innerHTML = '<i class="fas fa-piggy-bank me-2"></i>Mostrar Reservas e Investimentos';
+        
+        // Remove o dataset de reservas de ambos os gráficos
+        if (graficoComparativo && graficoComparativo.data) {
+            graficoComparativo.data.datasets = graficoComparativo.data.datasets.slice(0, 2);
+            graficoComparativo.update();
+        }
+        
+        if (graficoEvolucao && graficoEvolucao.data) {
+            graficoEvolucao.data.datasets = graficoEvolucao.data.datasets.slice(0, 2);
+            graficoEvolucao.update();
+        }
+    }
+    
+    console.log('Novo estado:', reservasAtivas); // Debug
+}
+
+// Adicionar listener quando o documento estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+    const botao = document.getElementById('toggleReservas');
+    if (botao) {
+        botao.addEventListener('click', toggleReservas);
+    }
+});
+</script>
+{% endblock %} 

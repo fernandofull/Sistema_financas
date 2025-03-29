@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Gerenciar Categorias</h2>
+
+    <!-- Formulário para adicionar nova categoria -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="POST" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Nome da Categoria</label>
+                    <input type="text" name="nome" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tipo</label>
+                    <select name="tipo" class="form-select" required>
+                        <option value="despesa">Despesa</option>
+                        <option value="receita">Receita</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Adicionar Categoria</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Categorias de Despesa -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Categorias de Despesa</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria in categorias_despesa %}
+                            <tr>
+                                <td>{{ categoria.nome }}</td>
+                                <td>
+                                    <form action="{{ url_for('excluir_categoria', id=categoria.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                               onclick="return confirm('Tem certeza que deseja excluir esta categoria?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categorias de Receita -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Categorias de Receita</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria in categorias_receita %}
+                            <tr>
+                                <td>{{ categoria.nome }}</td>
+                                <td>
+                                    <form action="{{ url_for('excluir_categoria', id=categoria.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                               onclick="return confirm('Tem certeza que deseja excluir esta categoria?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

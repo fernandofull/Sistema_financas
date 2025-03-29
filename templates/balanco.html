@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Balanço Financeiro</h2>
+        <div class="d-flex align-items-center">
+            <form method="GET" class="d-flex align-items-center">
+                <select name="ano" class="form-select me-2" style="width: 100px;" onchange="this.form.submit()">
+                    {% for ano in anos %}
+                    <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>{{ ano }}</option>
+                    {% endfor %}
+                </select>
+                <select name="mes" class="form-select me-2" style="width: 150px;" onchange="this.form.submit()">
+                    {% for i in range(12) %}
+                    <option value="{{ i+1 }}" {% if i+1 == mes_atual %}selected{% endif %}>{{ meses[i] }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Total Ativos</h5>
+                    <h3>
+                        R$ {{ '{:,.2f}'.format(total_ativos|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Total Passivos</h5>
+                    <h3>
+                        R$ {{ '{:,.2f}'.format(total_passivos|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white {{ 'bg-success' if patrimonio_liquido >= 0 else 'bg-danger' }}">
+                <div class="card-body">
+                    <h5 class="card-title">Patrimônio Líquido</h5>
+                    <h3>
+                        R$ {{ '{:,.2f}'.format(patrimonio_liquido|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalhamento -->
+    <div class="row">
+        <!-- Ativos por Categoria -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Ativos por Categoria</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria, valor in ativos_por_categoria.items() %}
+                            <tr>
+                                <td>{{ categoria }}</td>
+                                <td class="text-end">
+                                    R$ {{ '{:,.2f}'.format(valor|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                                </td>
+                                <td>{{ "%.1f"|format(valor/total_ativos*100 if total_ativos > 0 else 0) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Passivos por Categoria -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Passivos por Categoria</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for categoria, valor in passivos_por_categoria.items() %}
+                            <tr>
+                                <td>{{ categoria }}</td>
+                                <td class="text-end">
+                                    R$ {{ '{:,.2f}'.format(valor|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                                </td>
+                                <td>{{ "%.1f"|format(valor/total_passivos*100 if total_passivos > 0 else 0) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

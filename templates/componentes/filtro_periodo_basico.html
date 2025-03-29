@@ -1,0 +1,36 @@
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="POST" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Período</label>
+                <select name="periodo" class="form-select" onchange="toggleMesField(this.value)">
+                    <option value="mensal">Mensal</option>
+                    <option value="anual">Anual</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Ano</label>
+                <select name="ano" class="form-select" id="anoSelect">
+                    {% for ano in anos %}
+                    <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3" id="mes-field">
+                <label class="form-label">Mês</label>
+                <select name="mes" class="form-select">
+                    {% for num, nome in meses.items() %}
+                    <option value="{{ num }}" {% if num == mes_atual %}selected{% endif %}>
+                        {{ nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div> 

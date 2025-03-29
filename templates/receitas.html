@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% from 'componentes/paginacao.html' import render_pagination %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Receitas</h2>
+    
+    {% include 'componentes/filtro_periodo.html' %}
+
+    <!-- Formulário de Nova Receita -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Nova Receita</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <input type="text" class="form-control" id="descricao" name="descricao" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="valor" class="form-label">Valor</label>
+                        <input type="number" step="0.01" class="form-control" id="valor" name="valor" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="categoria" name="categoria" required>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label for="data" class="form-label">Data</label>
+                        <input type="date" class="form-control" id="data" name="data" required>
+                    </div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="fixa" name="fixa">
+                    <label class="form-check-label" for="fixa">Receita Fixa</label>
+                </div>
+                <div class="mb-3" id="repeticoesDiv" style="display: none;">
+                    <label for="num_repeticoes" class="form-label">Número de Repetições</label>
+                    <input type="number" class="form-control" id="num_repeticoes" name="num_repeticoes" min="1" max="60" value="12">
+                    <small class="form-text text-muted">Quantos meses esta receita deve se repetir (1-60)</small>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="recebido" name="recebido" checked>
+                        <label class="form-check-label" for="recebido">Receita recebida</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Adicionar Receita</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Receitas -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Receitas do Período</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>
+                                <div class="d-flex align-items-center">
+                                    Data
+                                    <a href="{{ url_for('receitas', sort_by='data' if sort_by != 'data' else 'status', ano=ano_atual, mes=mes_atual) }}" 
+                                       class="ms-2 text-decoration-none">
+                                        <i class="fas fa-sort"></i>
+                                    </a>
+                                </div>
+                            </th>
+                            <th>Categoria</th>
+                            <th>Fixa</th>
+                            <th class="table-action-column">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for receita in receitas %}
+                        <tr data-id="{{ receita.id }}" class="receita-row">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge {{ 'bg-success' if receita.recebido else 'bg-warning' }}">
+                                        {{ 'Recebida' if receita.recebido else 'Pendente' }}
+                                    </span>
+                                    <form action="{{ url_for('toggle_receita_recebida', id=receita.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-success' if receita.recebido else 'btn-outline-success' }} d-none d-md-inline-block">
+                                            <i class="fas {{ 'fa-check-circle' if receita.recebido else 'fa-circle' }}"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td>{{ receita.descricao }}</td>
+                            <td class="text-end">
+                                R$ {{ '{:,.2f}'.format(receita.valor|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                            </td>
+                            <td>{{ receita.data.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ receita.categoria.nome }}</td>
+                            <td>
+                                <span class="badge {{ 'bg-info' if receita.fixa else 'bg-secondary' }}">
+                                    {{ 'Fixa' if receita.fixa else 'Variável' }}
+                                </span>
+                            </td>
+                            <td class="table-action-column">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('editar_receita', id=receita.id) }}" class="btn btn-sm btn-primary d-none d-md-inline-block">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-danger d-none d-md-inline-block" 
+                                            onclick="confirmarExclusao(`{{ url_for('excluir_receita', id=receita.id) }}`)">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <!-- Adiciona a paginação -->
+                {{ render_pagination(receitas, 'receitas') }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de ações móvel -->
+    <div class="mobile-action-bar bg-white border-top p-2 d-md-none" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 1030;">
+        <div class="container">
+            <div class="d-flex justify-content-around">
+                <form action="" method="POST" class="toggle-form" style="display: inline;">
+                    <button type="submit" class="btn btn-success btn-toggle-recebido">
+                        <i class="fas fa-check-circle"></i> Marcar Recebido
+                    </button>
+                </form>
+                <a href="" class="btn btn-primary btn-edit">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <button type="button" class="btn btn-danger btn-delete">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicione após a tabela de receitas -->
+    <div class="mt-4">
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalLimparReceitas">
+            <i class="fas fa-trash"></i> Limpar Todas as Receitas
+        </button>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="modalLimparReceitas" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>ATENÇÃO:</strong> Esta ação excluirá TODAS as suas receitas e não poderá ser desfeita!
+                    </p>
+                    <form id="formLimparReceitas" action="{{ url_for('limpar_receitas') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="senha_admin" class="form-label">Digite a senha de administrador para confirmar:</label>
+                            <input type="password" class="form-control" id="senha_admin" name="senha_admin" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formLimparReceitas" class="btn btn-danger">
+                        Confirmar Exclusão
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div class="modal fade" id="editarReceitaModal" tabindex="-1" aria-labelledby="editarReceitaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarReceitaModalLabel">Editar Receita</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="formEditarReceita" method="POST">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editDescricao" class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="editDescricao" name="descricao" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editValor" class="form-label">Valor</label>
+                            <input type="number" class="form-control" id="editValor" name="valor" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editCategoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="editCategoria" name="categoria" required>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editData" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="editData" name="data" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="editFixa" name="fixa">
+                            <label class="form-check-label" for="editFixa">Receita Fixa</label>
+                        </div>
+                        <div class="mb-3" id="editRepeticoesDiv" style="display: none;">
+                            <label for="editNumRepeticoes" class="form-label">Número de Repetições</label>
+                            <input type="number" class="form-control" id="editNumRepeticoes" name="num_repeticoes" min="1" max="60" value="12">
+                            <small class="form-text text-muted">Quantos meses esta receita deve se repetir (1-60)</small>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="editRecebido" name="recebido">
+                            <label class="form-check-label" for="editRecebido">Receita recebida</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary w-100 mb-2" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary w-100">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmação de exclusão -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center mb-0">Tem certeza que deseja excluir esta receita?</p>
+                </div>
+                <div class="modal-footer d-flex flex-column">
+                    <form id="deleteForm" method="POST" class="w-100">
+                        <button type="submit" class="btn btn-danger w-100 mb-2">Excluir</button>
+                    </form>
+                    <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensagens Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fixaCheckbox = document.getElementById('fixa');
+        const repeticoesDiv = document.getElementById('repeticoesDiv');
+        const editFixaCheckbox = document.getElementById('editFixa');
+        const editRepeticoesDiv = document.getElementById('editRepeticoesDiv');
+        
+        fixaCheckbox.addEventListener('change', function() {
+            repeticoesDiv.style.display = this.checked ? 'block' : 'none';
+        });
+
+        editFixaCheckbox.addEventListener('change', function() {
+            editRepeticoesDiv.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Funcionalidade para dispositivos móveis
+        if (window.innerWidth <= 768) {
+            const rows = document.querySelectorAll('.receita-row');
+            const mobileActionBar = document.querySelector('.mobile-action-bar');
+            let selectedRow = null;
+
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    
+                    // Remove seleção anterior
+                    if (selectedRow) {
+                        selectedRow.classList.remove('table-active');
+                    }
+
+                    // Atualiza seleção atual
+                    if (selectedRow === this) {
+                        selectedRow = null;
+                        mobileActionBar.classList.remove('d-block');
+                        mobileActionBar.classList.add('d-none');
+                    } else {
+                        selectedRow = this;
+                        this.classList.add('table-active');
+                        mobileActionBar.classList.remove('d-none');
+                        mobileActionBar.classList.add('d-block');
+
+                        // Atualiza os botões da barra de ações
+                        const toggleForm = mobileActionBar.querySelector('.toggle-form');
+                        const btnEdit = mobileActionBar.querySelector('.btn-edit');
+                        const btnDelete = mobileActionBar.querySelector('.btn-delete');
+                        const btnToggle = mobileActionBar.querySelector('.btn-toggle-recebido');
+
+                        // Configura o botão de edição
+                        btnEdit.href = `{{ url_for('editar_receita', id=0) }}`.replace('0', id);
+
+                        // Configura o botão de exclusão
+                        btnDelete.onclick = () => confirmarExclusao(`{{ url_for('excluir_receita', id=0) }}`.replace('0', id));
+
+                        // Configura o formulário de toggle
+                        toggleForm.action = `{{ url_for('toggle_receita_recebida', id=0) }}`.replace('0', id);
+
+                        // Atualiza o texto do botão toggle baseado no status atual
+                        const isRecebida = selectedRow.querySelector('.badge').textContent.trim() === 'Recebida';
+                        btnToggle.innerHTML = `<i class="fas fa-${isRecebida ? 'times' : 'check'}-circle"></i> Marcar ${isRecebida ? 'Pendente' : 'Recebida'}`;
+                    }
+                });
+            });
+
+            // Adiciona margem ao final da página para evitar que o conteúdo fique escondido sob a barra de ações móvel
+            document.body.style.marginBottom = '80px';
+        }
+
+        // Configura o botão de exclusão na barra de ações móvel
+        document.querySelector('.btn-delete').addEventListener('click', function(e) {
+            e.preventDefault();
+            const selectedRow = document.querySelector('tr.selected');
+            if (selectedRow) {
+                const id = selectedRow.dataset.id;
+                confirmarExclusao('/excluir_receita/' + id);
+            }
+        });
+    });
+
+    function confirmarExclusao(url) {
+        if (confirm('Tem certeza que deseja excluir esta receita?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    </script>
+{% endblock %}

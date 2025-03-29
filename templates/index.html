@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="jumbotron text-center">
+        <h1 class="display-4">Bem-vindo ao Sistema Financeiro</h1>
+        <p class="lead">Gerencie suas finanças de forma simples e eficiente</p>
+        <hr class="my-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ url_for('despesas') }}" class="btn btn-primary btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-minus-circle fa-2x"></i>
+                                <div class="btn-label">Despesas</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ url_for('receitas') }}" class="btn btn-success btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-plus-circle fa-2x"></i>
+                                <div class="btn-label">Receitas</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ url_for('graficos') }}" class="btn btn-info btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-chart-bar fa-2x"></i>
+                                <div class="btn-label">Gráficos</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ url_for('categorias') }}" class="btn btn-secondary btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-tags fa-2x"></i>
+                                <div class="btn-label">Categorias</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ url_for('balanco') }}" class="btn btn-warning btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-balance-scale fa-2x"></i>
+                                <div class="btn-label">Balanço</div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <a href="{{ url_for('dre') }}" class="btn btn-danger btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-chart-line fa-2x"></i>
+                                <div class="btn-label">DRE</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12 mb-4">
+                        <a href="{{ url_for('reservas') }}" class="btn btn-purple btn-circle">
+                            <div class="icon-container">
+                                <i class="fas fa-piggy-bank fa-2x"></i>
+                                <div class="btn-label">Reservas e Investimentos</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <a href="{{ url_for('sobre') }}" class="btn btn-secondary btn-lg btn-block w-100">
+                            <i class="fas fa-info-circle"></i> Sobre o Sistema
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+
+.btn-purple:hover {
+    background-color: #5a32a3;
+    border-color: #5a32a3;
+    color: white;
+}
+
+.btn-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.btn-circle:hover {
+    transform: scale(1.1);
+    color: white;
+}
+
+.icon-container {
+    text-align: center;
+}
+
+.btn-label {
+    margin-top: 10px;
+    font-size: 14px;
+    color: white;
+}
+
+.fa-2x {
+    font-size: 2em;
+}
+</style>
+{% endblock %} 

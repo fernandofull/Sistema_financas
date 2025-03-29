@@ -1,0 +1,29 @@
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="POST" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Ano</label>
+                <select name="ano" class="form-select">
+                    {% for ano in anos %}
+                    <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>
+                        {{ ano }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Mês</label>
+                <select name="mes" class="form-select">
+                    {% for i in range(1, 13) %}
+                    <option value="{{ i }}" {% if i == mes_atual %}selected{% endif %}>
+                        {{ meses[i-1] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div> 

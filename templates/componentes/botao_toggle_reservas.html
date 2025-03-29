@@ -1,0 +1,38 @@
+<button id="toggleReservas" 
+        class="btn {{ 'btn-danger' if request.args.get('incluir_reservas') == 'true' else 'btn-outline-success' }}"
+        onclick="toggleReservas()">
+    <i class="fas fa-piggy-bank me-2"></i>
+    {{ 'Ocultar Reservas e Investimentos' if request.args.get('incluir_reservas') == 'true' else 'Mostrar Reservas e Investimentos' }}
+</button>
+
+<script>
+function toggleReservas() {
+    // Pega os valores atuais do formulário
+    const mesSelect = document.querySelector('select[name="mes"]');
+    const anoSelect = document.querySelector('select[name="ano"]');
+    const periodoSelect = document.querySelector('select[name="periodo"]');
+    
+    const mes = mesSelect ? mesSelect.value : '';
+    const ano = anoSelect ? anoSelect.value : '';
+    const periodo = periodoSelect ? periodoSelect.value : 'mensal';
+    
+    // Constrói a URL com os parâmetros atuais
+    const urlParams = new URLSearchParams(window.location.search);
+    const incluirReservas = urlParams.get('incluir_reservas') === 'true';
+    
+    // Atualiza os parâmetros
+    if (incluirReservas) {
+        urlParams.delete('incluir_reservas');
+    } else {
+        urlParams.set('incluir_reservas', 'true');
+    }
+    
+    // Mantém os valores do período
+    urlParams.set('mes', mes);
+    urlParams.set('ano', ano);
+    urlParams.set('periodo', periodo);
+    
+    // Redireciona com todos os parâmetros
+    window.location.href = window.location.pathname + '?' + urlParams.toString();
+}
+</script> 

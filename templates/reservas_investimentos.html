@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Reservas e Investimentos</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Formulário de Nova Reserva -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Nova Reserva</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <input type="text" class="form-control" id="descricao" name="descricao" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="valor" class="form-label">Valor</label>
+                        <input type="number" step="0.01" class="form-control" id="valor" name="valor" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="observacao" class="form-label">Observação</label>
+                    <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Adicionar Reserva</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Reservas -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Reservas e Investimentos</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Data Criação</th>
+                            <th>Observação</th>
+                            <th class="table-action-column">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reserva in reservas %}
+                        <tr data-id="{{ reserva.id }}" class="reserva-row">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge {{ 'bg-success' if reserva.ativo else 'bg-secondary' }}">
+                                        {{ 'Ativa' if reserva.ativo else 'Inativa' }}
+                                    </span>
+                                    <form action="{{ url_for('toggle_reserva_emergencia', id=reserva.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm {{ 'btn-success' if reserva.ativo else 'btn-outline-success' }} d-none d-md-inline-block">
+                                            <i class="fas {{ 'fa-check-circle' if reserva.ativo else 'fa-circle' }}"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td>{{ reserva.descricao }}</td>
+                            <td class="text-end">
+                                R$ {{ '{:,.2f}'.format(reserva.valor|float).replace(',', '_').replace('.', ',').replace('_', '.') }}
+                            </td>
+                            <td>{{ reserva.data_criacao.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ reserva.observacao or '' }}</td>
+                            <td class="table-action-column">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-primary d-none d-md-inline-block" 
+                                            onclick="editarReserva('{{ reserva.id }}', '{{ reserva.descricao }}', '{{ reserva.valor }}', '{{ reserva.observacao or '' }}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger d-none d-md-inline-block" 
+                                            onclick="confirmarExclusao(`{{ url_for('excluir_reserva_emergencia', id=reserva.id) }}`)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Reserva -->
+<div class="modal fade" id="editarReservaModal" tabindex="-1" aria-labelledby="editarReservaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarReservaModalLabel">Editar Reserva</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formEditarReserva" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editDescricao" class="form-label">Descrição</label>
+                        <input type="text" class="form-control" id="editDescricao" name="descricao" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editValor" class="form-label">Valor</label>
+                        <input type="number" class="form-control" id="editValor" name="valor" step="0.01" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editObservacao" class="form-label">Observação</label>
+                        <textarea class="form-control" id="editObservacao" name="observacao" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary w-100 mb-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary w-100">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center mb-0">Tem certeza que deseja excluir esta reserva?</p>
+            </div>
+            <div class="modal-footer d-flex flex-column">
+                <form id="deleteForm" method="POST" class="w-100">
+                    <button type="submit" class="btn btn-danger w-100 mb-2">Excluir</button>
+                </form>
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Barra de ações móvel -->
+<div class="mobile-action-bar bg-white border-top p-2 d-md-none" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 1030;">
+    <div class="container">
+        <div class="d-flex justify-content-around">
+            <form action="" method="POST" class="toggle-form" style="display: inline;">
+                <button type="submit" class="btn btn-success btn-toggle-ativo">
+                    <i class="fas fa-check-circle"></i> Marcar Ativo
+                </button>
+            </form>
+            <a href="" class="btn btn-primary btn-edit">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <button type="button" class="btn btn-danger btn-delete">
+                <i class="fas fa-trash"></i> Excluir
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.reserva-row');
+    const mobileActionBar = document.querySelector('.mobile-action-bar');
+    let selectedRow = null;
+
+    rows.forEach(row => {
+        row.addEventListener('click', function() {
+            const id = this.dataset.id;
+            
+            // Remove seleção anterior
+            if (selectedRow) {
+                selectedRow.classList.remove('table-active');
+            }
+
+            // Atualiza seleção atual
+            if (selectedRow === this) {
+                selectedRow = null;
+                mobileActionBar.classList.remove('d-block');
+                mobileActionBar.classList.add('d-none');
+            } else {
+                selectedRow = this;
+                this.classList.add('table-active');
+                mobileActionBar.classList.remove('d-none');
+                mobileActionBar.classList.add('d-block');
+
+                // Atualiza os botões da barra de ações
+                const toggleForm = mobileActionBar.querySelector('.toggle-form');
+                const btnEdit = mobileActionBar.querySelector('.btn-edit');
+                const btnDelete = mobileActionBar.querySelector('.btn-delete');
+                const btnToggle = mobileActionBar.querySelector('.btn-toggle-ativo');
+
+                // Configura o botão de edição
+                btnEdit.href = `{{ url_for('editar_reserva_emergencia', id=0) }}`.replace('0', id);
+
+                // Configura o botão de exclusão
+                btnDelete.onclick = () => confirmarExclusao(`{{ url_for('excluir_reserva_emergencia', id=0) }}`.replace('0', id));
+
+                // Configura o formulário de toggle
+                toggleForm.action = `{{ url_for('toggle_reserva_emergencia', id=0) }}`.replace('0', id);
+
+                // Atualiza o texto do botão toggle baseado no status atual
+                const isAtivo = selectedRow.querySelector('.badge').textContent.trim() === 'Ativa';
+                btnToggle.innerHTML = `<i class="fas fa-${isAtivo ? 'times' : 'check'}-circle"></i> Marcar ${isAtivo ? 'Inativa' : 'Ativa'}`;
+            }
+        });
+    });
+
+    // Adiciona margem ao final da página para evitar que o conteúdo fique escondido sob a barra de ações móvel
+    document.body.style.marginBottom = '80px';
+});
+
+function confirmarExclusao(url) {
+    if (confirm('Tem certeza que deseja excluir esta reserva?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function editarReserva(id, descricao, valor, observacao) {
+    const modal = document.getElementById('editarReservaModal');
+    const form = document.getElementById('formEditarReserva');
+    
+    // Preenche os campos do formulário
+    document.getElementById('editDescricao').value = descricao;
+    document.getElementById('editValor').value = valor;
+    document.getElementById('editObservacao').value = observacao;
+    
+    // Configura a URL do formulário
+    form.action = `{{ url_for('editar_reserva_emergencia', id=0) }}`.replace('0', id);
+    
+    // Exibe o modal
+    const modalInstance = new bootstrap.Modal(modal);
+    modalInstance.show();
+}
+</script>
+{% endblock %}

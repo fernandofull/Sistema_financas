@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Sobre o Sistema Financeiro</h2>
+        </div>
+        <div class="card-body">
+            <h5>Funcionalidades Principais</h5>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Controle de Receitas e Despesas:</strong>
+                    <ul>
+                        <li>Lançamentos únicos ou fixos</li>
+                        <li>Balanço com aspecto financeiro (Regime de caixa): Considera receitas e despesas efetivamente recebidas/pagas</li>
+                        <li>DRE considerando regime de competência: Receitas e despesas são consideradas no período em que foram lançadas</li>
+                        <li>Controle de status (pago/recebido)</li>
+                        <li>Replicação automática de lançamentos fixos por 12 meses</li>
+                        <li>Criação ilimitada de usuários com lançamentos e dados individualizados</li>
+                        <li>Interface responsiva para dispositivos móveis</li>
+                        
+                    </ul>
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Categorização:</strong>
+                    <ul>
+                        <li>Categorias personalizadas para receitas e despesas</li>
+                        <li>Organização por tipo de lançamento</li>
+                    </ul>
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Relatórios Financeiros:</strong>
+                    <ul>
+                        <li>Balanço mensal detalhado</li>
+                        <li>DRE (Demonstrativo de Resultado)</li>
+                        <li>Análises gráficas</li>
+                    </ul>
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-check text-success"></i>
+                    <strong>Reservas e Investimentos:</strong>
+                    <ul>
+                        <li>Controle separado de reservas</li>
+                        <li>Acompanhamento de investimentos</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Informações Importantes</h6>
+                <ul class="mb-0">
+                    <li><strong>Lançamentos Fixos:</strong> São replicados automaticamente pelo número de meses escolhido (1-60 meses). Se não especificado, o padrão é 12 meses. Ao editar um lançamento fixo, todas as suas repetições subsequentes também são atualizadas.</li>
+                    <li><strong>Filtros:</strong> Disponíveis por período (mensal/anual) em todos os relatórios</li>
+                    
+                </ul>
+            </div>
+
+            <div class="alert alert-warning">
+                <h6><i class="fas fa-exclamation-triangle"></i> Funções Administrativas</h6>
+                <p><strong>Limpeza de Dados:</strong> Para apagar todas as receitas ou despesas, use a senha padrão: "ApagarTudo"</p>
+                <p class="mb-0"><strong>Atenção:</strong> Esta ação é irreversível! Faça backup antes de executar.</p>
+                <p class="mb-0"><strong>Atenção:</strong> NÃO REALIZAR LANÇAMENTOS NO USUÁRIO PADRÃO "ADMIN". Crie seu usuário e senha e posteriormente exclua admin.</p>
+            </div>
+
+            <h5>Recursos Adicionais</h5>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                    Filtros avançados por período
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-chart-pie text-primary"></i>
+                    Gráficos de evolução financeira
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-tags text-primary"></i>
+                    Sistema de categorização flexível
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-sync text-primary"></i>
+                    Gestão de recorrências
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-piggy-bank text-primary"></i>
+                    Controle de investimentos
+                </li>
+            </ul>
+
+            <h5>Dicas de Uso</h5>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item">Mantenha os lançamentos sempre atualizados</li>
+                <li class="list-group-item">Crie e use categorias específicas para melhor organização</li>
+                <li class="list-group-item">Para compras no cartão de crédito, crie uma categoria com o nome do cartão e use despesas fixas com o número de parcelas desejado</li>
+                <li class="list-group-item">Acompanhe regularmente os relatórios financeiros</li>
+                <li class="list-group-item">Faça backup periódico dos dados</li>
+            </ul>
+
+            <h5>Informações do Sistema</h5>
+            <p>Sistema desenvolvido para controle financeiro pessoal e de pequenas empresas.</p>
+            <p>Versão: 1.0</p>
+            <p>Desenvolvido por: Fernando Ribeiro</p>
+            
+
+            <h5>Suporte</h5>
+            <p>Para suporte ou sugestões, entre em contato com o administrador do sistema pelo e-mail: solutivo.corp@gmail.com e assim que possível implementaremos as mudanças que forem viáveis.</p>
+            <div class="d-flex gap-3 mb-3">
+                
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
